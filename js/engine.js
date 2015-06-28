@@ -23,7 +23,9 @@ var Engine = (function(global) {
         win = global.window,
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
-        lastTime;
+        lastTime,
+        girls = [],
+        stop;
 
     canvas.width = 505;
     canvas.height = 606;
@@ -46,55 +48,43 @@ var Engine = (function(global) {
          * our update function since it may be used for smooth animation.
          */
         update(dt);
-        render();
-
-        /* Set our lastTime variable which is used to determine the time delta
-         * for the next time this function is called.
+        /* In case of collision or victory, stop is set to true after the
+         * call to update(dt), so that render() doesn't overdraw the game
+         * menu.
          */
-        lastTime = now;
+        if (!stop) {
+            render();
 
-        /* Use the browser's requestAnimationFrame function to call this
-         * function again as soon as the browser is able to draw another frame.
-         */
-        win.requestAnimationFrame(main);
-    };
+            /* Set our lastTime variable which is used to determine the time delta
+             * for the next time this function is called.
+             */
+            lastTime = now;
 
-    /* This function does some initial setup that should only occur once,
-     * particularly setting the lastTime variable that is required for the
-     * game loop.
-     */
-    function init() {
-        reset();
-        lastTime = Date.now();
-        main();
+            /* Use the browser's requestAnimationFrame function to call this
+             * function again as soon as the browser is able to draw another frame.
+             */
+            win.requestAnimationFrame(main);
+        }
     }
 
     /* This function is called by main (our game loop) and itself calls all
-     * of the functions which may need to update entity's data. Based on how
-     * you implement your collision detection (when two entities occupy the
-     * same space, for instance when your character should die), you may find
-     * the need to add an additional function call here. For now, we've left
-     * it commented out - you may or may not want to implement this
-     * functionality this way (you could just implement collision detection
-     * on the entities themselves within your app.js file).
+     * of the functions which may need to update entity's data.
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        checkCollisions();
+        checkVictory();
     }
 
     /* This is called by the update function  and loops through all of the
      * objects within your allEnemies array as defined in app.js and calls
      * their update() methods. It will then call the update function for your
-     * player object. These update methods should focus purely on updating
-     * the data/properties related to  the object. Do your drawing in your
-     * render methods.
+     * player object.
      */
     function updateEntities(dt) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        player.update();
     }
 
     /* This function initially draws the "game level", it will then call
@@ -136,7 +126,6 @@ var Engine = (function(global) {
             }
         }
 
-
         renderEntities();
     }
 
@@ -155,12 +144,139 @@ var Engine = (function(global) {
         player.render();
     }
 
-    /* This function does nothing but it could have been a good place to
-     * handle game reset states - maybe a new game menu or a game over screen
-     * those sorts of things. It's only called once by the init() method.
+    /* This function checks for collisions. A collision occurs if the horizontal
+     * distance between player and any enemy is less than 101px (width of a tile),
+     * or if the vertical distance is less than 83px (height of a tile). If a
+     * collision is detected, the reset function is called.
+     */
+    function checkCollisions() {
+        allEnemies.forEach(function(enemy) {
+            var y_gap = Math.abs(player.y - enemy.y),
+                x_gap = Math.abs(player.x - enemy.x);
+            if (x_gap < 101 && y_gap < 83) {
+                alert('Try again!');
+                reset();
+            }
+        });
+    }
+
+    /* This function call reset() (so the game menu) if the player reaches the
+     * top row.
+     */
+    function checkVictory() {
+        if (player.y < 83 - yOffset) {
+            alert('You win!');
+            reset();
+        }
+    }
+
+    /* This function does some initial setup and is called only once.
+     */
+    function init() {
+        initGirls();
+        addClickGirls();
+        reset();
+    }
+
+    /* This function initializes the girls array with girl objects that are
+     * used for our game menu.
+     */
+    function initGirls() {
+        girls.push({
+            sprite: 'images/char-cat-girl.png',
+            width: 101,
+            height: 83,
+            top: canvas.height / 2,
+            left: 55
+        });
+        girls.push({
+            sprite: 'images/char-horn-girl.png',
+            width: 101,
+            height: 83,
+            top: canvas.height / 2,
+            left: 156
+        });
+        girls.push({
+            sprite: 'images/char-pink-girl.png',
+            width: 101,
+            height: 83,
+            top: canvas.height / 2,
+            left: 257
+        });
+        girls.push({
+            sprite: 'images/char-princess-girl.png',
+            width: 101,
+            height: 83,
+            top: canvas.height / 2,
+            left: 358
+        });
+    }
+
+    /* All clicks on the canvas are recorded, and the ones that are
+     * on a girl reinstantiate the player and enemies, and the main()
+     * function is reentered.
+     */
+    function addClickGirls() {
+        var canvasLeft = canvas.offsetLeft,
+            canvasTop = canvas.offsetTop;
+        // All canvas clicks are recorded
+        canvas.addEventListener('click', function(e) {
+            // x and y are relative to the canvas
+            var x = e.pageX - canvasLeft,
+                y = e.pageY - canvasTop;
+
+            // Match detection between click position and girl
+            girls.forEach(function(girl) {
+                // The 60px offset is to compensate the blank top part
+                // of the girls' .png
+                if (y > girl.top + 60 && y < girl.top + girl.height + 60 &&
+                    x > girl.left && x < girl.left + girl.width) {
+                    // Reinstantiates player with the chosen sprite
+                    player = new Player(girl.sprite);
+                    // Reinstantiate enemies
+                    allEnemies.forEach(function(enemy, index, allEnemies) {
+                        allEnemies[index] = new Enemy();
+                    });
+                    // Set stop to false for main to fully execute
+                    stop = false;
+                    // Reenter the game loop
+                    lastTime = Date.now();
+                    main();
+                }
+            });
+        });
+    }
+
+    /* This function clears the canvas and redraws the game menu.
+     * It's called at start (init), in case of collision and in case
+     * of victory.
      */
     function reset() {
-        // noop
+        // Prevent main from executing further instructions
+        stop = true;
+
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw text 'Choose a girl!'
+        drawText();
+
+        // Draw girls
+        girls.forEach(function(girl) {
+            ctx.drawImage(Resources.get(girl.sprite), girl.left, girl.top);
+        });
+
+    }
+
+    function drawText() {
+        ctx.font = "36px Georgia";
+        ctx.strokeStyle = 'black';
+        ctx.fillStyle = 'orange';
+        ctx.lineWidth = 5;
+        ctx.textAlign = 'center';
+
+        ctx.strokeText('CHOOSE YOUR GIRL!', canvas.width / 2, 320);
+        ctx.fillText('CHOOSE YOUR GIRL!', canvas.width / 2, 320);
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -172,7 +288,11 @@ var Engine = (function(global) {
         'images/water-block.png',
         'images/grass-block.png',
         'images/enemy-bug.png',
-        'images/char-boy.png'
+        'images/char-boy.png',
+        'images/char-cat-girl.png',
+        'images/char-horn-girl.png',
+        'images/char-pink-girl.png',
+        'images/char-princess-girl.png'
     ]);
     Resources.onReady(init);
 
@@ -181,4 +301,5 @@ var Engine = (function(global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
+
 })(this);
