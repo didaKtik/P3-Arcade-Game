@@ -164,7 +164,7 @@ var Engine = (function(global) {
      * top row.
      */
     function checkVictory() {
-        if (player.y < 83 - yOffset) {
+        if (player.y < 83 - YOFFSET) {
             alert('You win!');
             reset();
         }
