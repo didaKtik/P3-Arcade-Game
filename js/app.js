@@ -1,5 +1,13 @@
 /* app.js */
 
+// TODO-1: new parent class for Enemy and Player with
+// object inheritance -> DONE
+// TODO-2: new FSM structure
+
+// Invoke strict mode for the entire script, to obtain
+// more 'secure' code
+'use strict';
+
 /** Player's and enemies' y-coordinate is a multiple of
  * 83px (the height of each row) minus this constant to
  * account for a shift between background and figure
@@ -9,24 +17,49 @@
  */
 var YOFFSET = 20;
 
-/** This class represents the naughty bugs.
+/** This class holds what Enemy and Player instances have
+ * in common.
  * @class
- * @global
+ */
+ // This a statement, while function fun() {} is a
+ // 'named function expression'
+ var Creature = function(sprite, x, y) {
+    /** Url of the image to draw this creature */
+    this.sprite = sprite;
+    /** X-coordinate */
+    this.x = x;
+    /** Y-coordinate */
+    this.y = y;
+ };
+
+/** This function is used to draw a creature on canvas,
+ * based on the creature's position and sprite.
+ */
+ Creature.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+
+/** This class represents the naughty bugs. It inherits
+ * from the Creature class.
+ * @class
  */
 var Enemy = function() {
+    // Enemy inherits the Creature properties
+    Creature.call(this);
     /** The image/sprite for our enemies, this uses
      * a helper we've provided to easily load images.
      */
     this.sprite = 'images/enemy-bug.png';
-    /** X-coordinate (intially left of canvas) */
+    /** X-coordinate is set left of canvas) */
     this.x = -101;
-    /** Speed (intially 0) */
+    /** Speed is set to zero */
     this.speed = 0;
-    /** Y-coordinate */
-    this.y;
     // Set y position and speed randomly, with delay
     this.delayedStart();
 };
+
+// Enemy inherits the Creature methods
+Enemy.prototype = Creature.prototype;
 
 /** Update the enemy's position
  * @param {number} dt - A time delta between ticks
@@ -85,32 +118,27 @@ Enemy.prototype.randomFeatures = function() {
     this.speed = 100 * Math.floor(Math.random() * 3 + 2);
 };
 
-/** This method is used to render an enemy */
-Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
-
 
 /** This class represents our brave hero!
  * @class
  * @param {string} sprite - The url of the image for our player.
- * @global
  */
 var Player = function(sprite) {
     /** The image/sprite for our player, default value corresponds to the boy.
      * @example 'images/char-boy.png'
      */
-    this.sprite = typeof sprite !== 'undefined' ? sprite : 'images/char-boy.png';
+    // Player inherits Creature properties
+    Creature.call(this);
+    // default sprite is the boy
+    this.sprite = sprite || 'images/char-boy.png';
     /** X-coordinate */
     this.x = 2 * 101;
     /** Y-coordinate */
     this.y = 5 * 83 - YOFFSET;
 };
 
-/** This method is used to render the player. */
-Player.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
+// Player inherits the methods of Creature
+Player.prototype = Creature.prototype;
 
 /** This method handles valid keyboard inputs by moving
  * the player according to the arrow pressed, if the boundaries
