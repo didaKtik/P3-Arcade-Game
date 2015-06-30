@@ -1,11 +1,11 @@
 Project 3: Arcade game "Frogger"
 ===============================
-Have you ever dreamt of a game that would make you better at crossing the
-road? Maybe on this day when you had to cross this two times three lane
+Have you ever dreamt of a game that would train you road-crossing capabilities?
+Maybe on this day when you had to cross this two-times-three-lane
 highway with your mosquito costume to grab your favourite hamburger? Whatever
 the good reason, this game is made for you!
 
-No in fact it is primarily an excuse to train on object-oriented programming
+No in fact this is primarily an excuse to train object-oriented programming
 with js (master this *this* guy, experience with scopes, classes and their
 prototype, inheritance, etc.). It is part of [Udacity's front-end nanodegree](https://www.udacity.com/course/front-end-web-developer-nanodegree--nd001),
 and as such you also learn plenty of other practical things on the way, like
