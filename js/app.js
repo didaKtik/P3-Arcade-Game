@@ -1,4 +1,5 @@
 /* app.js */
+// Classes are written in the pseudo-classical pattern
 
 // TODO-1: new parent class for Enemy and Player with
 // object inheritance -> DONE
@@ -60,6 +61,8 @@ var Enemy = function() {
 
 // Enemy.prototype delegates the failed lookups to Creature.prototype
 Enemy.prototype = Object.create(Creature.prototype);
+// Set the constructor property for the subclass
+Enemy.prototype.constructor = Enemy;
 
 /** Update the enemy's position
  * @param {number} dt - A time delta between ticks
@@ -139,6 +142,8 @@ var Player = function(sprite) {
 
 // Player.prototype delegates the failed lookups to Creature.prototype
 Player.prototype = Object.create(Creature.prototype);
+// Set the constructor property for the subclass
+Player.prototype.constructor = Player;
 
 /** This method handles valid keyboard inputs by moving
  * the player according to the arrow pressed, if the boundaries
