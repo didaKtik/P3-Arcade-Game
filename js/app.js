@@ -58,8 +58,8 @@ var Enemy = function() {
     this.delayedStart();
 };
 
-// Enemy inherits the Creature methods
-Enemy.prototype = Creature.prototype;
+// Enemy.prototype delegates the failed lookups to Creature.prototype
+Enemy.prototype = Object.create(Creature.prototype);
 
 /** Update the enemy's position
  * @param {number} dt - A time delta between ticks
@@ -137,8 +137,8 @@ var Player = function(sprite) {
     this.y = 5 * 83 - YOFFSET;
 };
 
-// Player inherits the methods of Creature
-Player.prototype = Creature.prototype;
+// Player.prototype delegates the failed lookups to Creature.prototype
+Player.prototype = Object.create(Creature.prototype);
 
 /** This method handles valid keyboard inputs by moving
  * the player according to the arrow pressed, if the boundaries
